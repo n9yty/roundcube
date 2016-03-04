@@ -129,6 +129,14 @@ class squirrelmail_usercopy extends rcube_plugin
 		$this->identities_level = intval($ilevel);
 	}
 
+	private function safer_utf8_encode($inVal)
+	{
+		if (!mb_detect_encoding($inVal, 'UTF-8', true)) {
+			$tmpV = utf8_encode($inVal);
+		}
+		return $inVal;
+	}
+
 	private function read_squirrel_prefs($uname)
 	{
 		$rcmail = rcmail::get_instance();
@@ -146,19 +154,19 @@ class squirrelmail_usercopy extends rcube_plugin
 				$this->prefs = array();
 				foreach (file($prefsfile) as $line) {
 					list($key, $value) = explode('=', $line);
-					$this->prefs[$key] = utf8_encode(rtrim($value));
+					$this->prefs[$key] = $this->safer_utf8_encode(rtrim($value));
 				}
 
 				// also read signature file if exists
 				if (is_readable($sigfile)) {
-					$this->prefs['___signature___'] = utf8_encode(file_get_contents($sigfile));
+					$this->prefs['___signature___'] = $this->safer_utf8_encode(file_get_contents($sigfile));
 				}
 
 				if (isset($this->prefs['identities']) && $this->prefs['identities'] > 1) {
 					for ($i=1; $i < $this->prefs['identities']; $i++) {
 						// read signature file if exists
 						if (is_readable($sigbase.$i)) {
-							$this->prefs['___sig'.$i.'___'] = utf8_encode(file_get_contents($sigbase.$i));
+							$this->prefs['___sig'.$i.'___'] = $this->safer_utf8_encode(file_get_contents($sigbase.$i));
 						}
 					}
 				}
@@ -169,7 +177,7 @@ class squirrelmail_usercopy extends rcube_plugin
 				// parse addres book file
 				if (filesize($abookfile)) {
 					foreach(file($abookfile) as $line) {
-						list($rec['name'], $rec['firstname'], $rec['surname'], $rec['email']) = explode('|', utf8_encode(rtrim($line)));
+						list($rec['name'], $rec['firstname'], $rec['surname'], $rec['email']) = explode('|', $this->safer_utf8_encode(rtrim($line)));
 						if(preg_match('/,/',$rec['email']))
 						{	
 							$email_arr=explode(',',$rec['email']);
@@ -291,3 +299,4 @@ class squirrelmail_usercopy extends rcube_plugin
 	}
 
 }
+
